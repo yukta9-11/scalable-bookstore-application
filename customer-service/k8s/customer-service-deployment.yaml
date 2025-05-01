@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-service-deployment
+  namespace: bookstore-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: customer-service
+  template:
+    metadata:
+      labels:
+        app: customer-service
+    spec:
+      containers:
+      - name: customer-service
+        image: ybhartia/customer-service:v1
+        imagePullPolicy : Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "bookstore-db-dev.cluster-c5gsus0gw4mx.us-east-1.rds.amazonaws.com"
+        - name: DB_USER
+          value: "EDISS"
+        - name: DB_PASSWORD
+          value: "EdissSpring25"
+        - name: DB_NAME
+          value: "bookstore"
+        - name: KAFKA_BROKERS
+          value: "3.129.102.184:9092,18.118.230.221:9093,3.130.6.49:9094"
+        - name: KAFKA_TOPIC
+          value: "ybhartia.customer.evt"
+        - name : ANDREW_ID
+          value : ybhartia
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5

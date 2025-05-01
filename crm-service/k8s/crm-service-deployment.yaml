@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-service
+  namespace: bookstore-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crm-service
+  template:
+    metadata:
+      labels:
+        app: crm-service
+    spec:
+      containers:
+        - name: crm-service
+          image: ybhartia/crm-service:v1
+          env:
+            - name: KAFKA_BROKERS
+              value: "3.129.102.184:9092,18.118.230.221:9093,3.130.6.49:9094"  # e.g., kafka:9092 or a public broker address
+            - name: EMAIL_USER
+              value: "aediss986@gmail.com"
+            - name: EMAIL_PASS
+              value: "zdwkjvhabypodlka"
+            - name: ANDREW_ID
+              value: "ybhartia"

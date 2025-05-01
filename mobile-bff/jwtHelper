@@ -1,0 +1,36 @@
+// bff-common/jwtHelper.js
+const validateJWT = (token) => {
+  if (!token) {
+    return { valid: false, error: 'Token is missing' };
+  }
+
+  // Extract the payload part (second part of the JWT)
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    return { valid: false, error: 'Invalid token format' };
+  }
+
+  try {
+    // Decode the payload (base64url encoded)
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+    
+    // Check the required claims
+    if (!payload.sub || !['starlord', 'gamora', 'drax', 'rocket', 'groot'].includes(payload.sub)) {
+      return { valid: false, error: 'Invalid subject claim' };
+    }
+
+    if (!payload.iss || payload.iss !== 'cmu.edu') {
+      return { valid: false, error: 'Invalid issuer claim' };
+    }
+
+    if (!payload.exp || typeof payload.exp !== 'number' || payload.exp < Math.floor(Date.now() / 1000)) {
+      return { valid: false, error: 'Token expired or invalid expiration' };
+    }
+
+    return { valid: true, payload };
+  } catch (error) {
+    return { valid: false, error: 'Failed to parse token payload' };
+  }
+};
+
+module.exports = { validateJWT };

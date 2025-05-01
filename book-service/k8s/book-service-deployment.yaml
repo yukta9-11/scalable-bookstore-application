@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book-service-deployment
+  namespace: bookstore-ns
+spec:
+  replicas: 1  # Only 1 replica as required for circuit breaker state
+  selector:
+    matchLabels:
+      app: book-service
+  template:
+    metadata:
+      labels:
+        app: book-service
+    spec:
+      volumes:
+      - name: circuit-breaker-volume
+        emptyDir: {}
+      containers:
+      - name: book-service
+        image: ybhartia/book-service:v1
+        imagePullPolicy : Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "bookstore-db-dev.cluster-c5gsus0gw4mx.us-east-1.rds.amazonaws.com"
+        - name: DB_USER
+          value: "EDISS"
+        - name: DB_PASSWORD
+          value: "EdissSpring25"
+        - name: DB_NAME
+          value: "bookstore"
+        - name: RECOMMENDATION_URL
+          value: "http://18.118.230.221"
+        volumeMounts:
+        - name: circuit-breaker-volume
+          mountPath: /app/circuit-breaker
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5

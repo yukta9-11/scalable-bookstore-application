@@ -1,0 +1,140 @@
+// circuitBreaker.js
+const fs = require('fs');
+const path = require('path');
+
+class CircuitBreaker {
+  /**
+   * Create a CircuitBreaker.
+   * @param {Object} options Configuration options.
+   * @param {number} options.timeout - Maximum time (ms) to wait for the wrapped call.
+   * @param {number} options.resetTimeout - Time (ms) after which an open circuit breaker attempts to close.
+   * @param {string} options.filePath - Path to the file used to persist the circuit breaker state.
+   */
+  constructor({ timeout = 3000, resetTimeout = 60000, filePath } = {}) {
+    this.timeout = timeout;
+    this.resetTimeout = resetTimeout;
+    this.filePath = filePath; // e.g., '/mnt/circuit-state/circuit.json'
+    // Load persisted state if available; otherwise, default to closed.
+    if (this.filePath && fs.existsSync(this.filePath)) {
+      try {
+        const data = fs.readFileSync(this.filePath, 'utf8');
+        const stateData = JSON.parse(data);
+        this.state = stateData.state;
+        this.openedAt = stateData.openedAt;
+      } catch (err) {
+        this.state = 'closed';
+        this.openedAt = 0;
+      }
+    } else {
+      this.state = 'closed';
+      this.openedAt = 0;
+    }
+  }
+
+  /**
+   * Persists the current state to the configured file.
+   */
+  persistState() {
+    if (this.filePath) {
+      try {
+        fs.writeFileSync(this.filePath, JSON.stringify({
+          state: this.state,
+          openedAt: this.openedAt
+        }));
+      } catch (err) {
+        console.error("Error persisting circuit state:", err);
+      }
+    }
+  }
+
+  /**
+   * Checks if the circuit breaker is open.
+   * If open, and the reset timeout has passed, it will close the circuit.
+   * @returns {boolean} True if circuit is open and reset timeout not passed.
+   */
+  isOpen() {
+    if (this.state === 'open') {
+      if (Date.now() - this.openedAt > this.resetTimeout) {
+        // Reset the circuit as the reset timeout has passed.
+        this.close();
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Wrap an asynchronous function call with circuit breaker logic.
+   * If the circuit is open, it immediately rejects.
+   * Otherwise, it calls the provided asyncFunction with a timeout.
+   * If that call fails or times out, it opens the circuit.
+   * @param {Function} asyncFunction An asynchronous function that returns a Promise.
+   * @returns {Promise} The result of asyncFunction.
+   */
+  async call(asyncFunction) {
+    if (this.isOpen()) {
+      throw new Error("Circuit is open");
+    }
+    try {
+      const result = await this._callWithTimeout(asyncFunction, this.timeout);
+      if (this.state === 'open') {
+        this.close();
+      }
+      return result;
+    } catch (error) {
+      // On any failure (including timeout), open the circuit.
+      this.open();
+      throw error;
+    }
+  }
+
+  /**
+   * Helper function to call an async function with a timeout.
+   * @param {Function} asyncFunction The async function to call.
+   * @param {number} timeout Timeout in milliseconds.
+   * @returns {Promise} Resolves with the function's result or rejects on timeout.
+   */
+  _callWithTimeout(asyncFunction, timeout) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error("Operation timed out"));
+      }, timeout);
+      asyncFunction()
+        .then(result => {
+          clearTimeout(timer);
+          resolve(result);
+        })
+        .catch(err => {
+          clearTimeout(timer);
+          reject(err);
+        });
+    });
+  }
+
+  /**
+   * Opens the circuit breaker.
+   */
+  open() {
+    if (this.state !== 'open') {
+      this.state = 'open';
+      this.openedAt = Date.now();
+      this.persistState();
+      console.warn("Circuit breaker opened");
+    }
+  }
+
+  /**
+   * Closes the circuit breaker.
+   */
+  close() {
+    if (this.state !== 'closed') {
+      this.state = 'closed';
+      this.openedAt = 0;
+      this.persistState();
+      console.info("Circuit breaker closed");
+    }
+  }
+}
+
+module.exports = CircuitBreaker;
