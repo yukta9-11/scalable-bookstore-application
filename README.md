@@ -1,3 +1,11 @@
+
+<img width="423" alt="Screenshot 2025-04-30 at 10 12 37 PM" src="https://github.com/user-attachments/assets/9ed6062e-6af8-4f0a-8fdb-e0358d0b72bf" />
+
+
+<img width="448" alt="Screenshot 2025-04-30 at 10 13 05 PM" src="https://github.com/user-attachments/assets/4e2a2a4f-4db6-4b1d-8dc0-83a02f60d797" />
+
+
+
 ## Technologies Used
 
 This project integrates several cloud and distributed systems technologies to build and deploy a scalable, resilient microservices-based bookstore backend.
@@ -32,9 +40,8 @@ This project integrates several cloud and distributed systems technologies to bu
  to handle service faults gracefully and prevent cascading failures  
 
 
-<img width="423" alt="Screenshot 2025-04-30 at 10 12 37 PM" src="https://github.com/user-attachments/assets/9ed6062e-6af8-4f0a-8fdb-e0358d0b72bf" />
 
-<img width="448" alt="Screenshot 2025-04-30 at 10 13 05 PM" src="https://github.com/user-attachments/assets/4e2a2a4f-4db6-4b1d-8dc0-83a02f60d797" />
+
 
 
 
