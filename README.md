@@ -26,4 +26,14 @@ This project integrates several cloud and distributed systems technologies to bu
 - **Postman** – Used for API testing and validation  
 - **Docker** – Containerized all microservices for consistent deployment environments  
 
-### D
+### Design Patterns and Principles
+
+- **JWT (JSON Web Tokens)** – Used for secure user authentication and authorization  
+- **BFF Pattern (Backends for Frontends)** – Enabled device-specific routing and logic separation  
+- **Single Responsibility Principle** – Applied for clean code structure and service modularity  
+
+### Cloud-Native Architecture
+
+- **Kubernetes and Amazon EKS** – Managed container orchestration platform for scaling and monitoring services  
+- **Kafka (publish-subscribe pattern)** – Used for asynchronous messaging between services  
+- **Circuit Breaker and Bulkheads** – Implemented in the Book service to handle service faults gracefully and prevent cascading failures  
